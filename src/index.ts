@@ -70,13 +70,14 @@ app.get('/logo/:chainId/:address', async (c) => {
       if (tokenData) {
         return c.redirect(tokenData.logoURI, 301);
       }
+      const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
+      return c.redirect(addressInfo?.data?.isContract ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/user.png', 302);
     }
   } catch (error) {
     console.log('error', error);
   }
 
-  const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
-  return c.redirect(addressInfo?.data?.isContract ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/blob/main/assets/smart-contract.png' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/blob/main/assets/user.png', 302);
+  return c.redirect('https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png', 302);
 });
 
 app.onError((err, c) => {
