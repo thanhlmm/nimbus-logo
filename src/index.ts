@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
-import { poweredBy } from 'hono/powered-by'
-import { basicAuth } from 'hono/basic-auth'
+import { ethers } from "ethers";
 
 export const app = new Hono()
 
@@ -15,13 +14,55 @@ const chainIdFolder = {
   137: 'polygon'
 }
 
-app.get('/logo/:chainId/:address', async (c, next) => {
+interface IChainConfig {
+  folder: string;
+  id: string;
+  json_rpc: string;
+}
+
+const getChainIdConfig = (id: string): IChainConfig | null => {
+  switch (id) {
+    case '1':
+      return {
+        folder: 'etherium',
+        id,
+        json_rpc: 'https://speedy-nodes-nyc.moralis.io/1a2b3c4d5e6f1a2b3c4d5e6f/eth/mainnet'
+      }
+    case '56':
+      return {
+        folder: 'smartchain',
+        id,
+        json_rpc: 'https://bsc--mainnet--rpc.datahub.figment.io:8545/apikey/00c6fa81ad8c6e888dba7ce01ee33b34'
+      }
+    case '43114':
+      return {
+        folder: 'avalanchex',
+        id,
+        json_rpc: 'https://speedy-nodes-nyc.moralis.io/1a2b3c4d5e6f1a2b3c4d5e6f/avalanche/mainnet'
+      }
+    case '250':
+      return {
+        folder: 'fantom',
+        id,
+        json_rpc: '' // TODO:
+      }
+    case '137':
+      return {
+        folder: 'polygon',
+        id,
+        json_rpc: 'https://speedy-nodes-nyc.moralis.io/1a2b3c4d5e6f1a2b3c4d5e6f/polygon/mainnet'
+      }
+  }
+  return null;
+};
+
+app.get('/logo/:chainId/:address', async (c) => {
   const chainId = c.req.param('chainId');
   const address = c.req.param('address').toLowerCase();
   try {
-    const chainFolder = chainIdFolder[chainId];
-    if (chainFolder) {
-      const tokenList: any = await fetch(`https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chainFolder}/tokenlist.json`).then(response => response.json());
+    const chainConfig = getChainIdConfig(chainId);
+    if (chainConfig) {
+      const tokenList: any = await fetch(`https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chainConfig.folder}/tokenlist.json`).then(response => response.json());
       // console.log(tokenList);
       const tokens = tokenList.tokens;
 
@@ -33,7 +74,9 @@ app.get('/logo/:chainId/:address', async (c, next) => {
   } catch (error) {
     console.log('error', error);
   }
-  return c.redirect('https://assets.debank.com/static/media/contract.13bef102.svg', 302);
+
+  const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
+  return c.redirect(addressInfo?.data?.isContract ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/blob/main/assets/smart-contract.png' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/blob/main/assets/user.png', 302);
 });
 
 app.onError((err, c) => {
