@@ -71,6 +71,7 @@ app.get('/logo/:chainId/:address', async (c) => {
         return c.redirect(tokenData.logoURI, 301);
       }
       const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
+      console.log({ addressInfo });
       return c.redirect(addressInfo?.data?.isContract ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/user.png', 302);
     }
   } catch (error) {
@@ -80,26 +81,21 @@ app.get('/logo/:chainId/:address', async (c) => {
   return c.redirect('https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png', 302);
 });
 
+app.get('/info/:chainId/:address', async (c) => {
+  const chainId = c.req.param('chainId');
+  const address = c.req.param('address').toLowerCase();
+
+  const key = `${chainId}-${address}`;
+  const info = await c.env.NIMBUS.get(key);
+  const data = info ? JSON.parse(info) : null;
+
+  return c.json({ data });
+})
+
 app.onError((err, c) => {
   // console.error(`${err}`)
   console.log(err);
   return c.text('Custom Error Message', 500)
 })
 
-// export default app
-
-export default {
-  async fetch(request: Request, env: any, ctx: ExecutionContext) {
-    const cacheUrl = new URL(request.url);
-    const cacheKey = new Request(cacheUrl.toString(), request);
-    const cache = caches.default;
-    let response = await cache.match(cacheKey);
-
-    if (response) {
-      console.log('HIT');
-      return response;
-    }
-    console.log('MISS');
-    return app.fetch(request, env, ctx)
-  },
-}
+export default app

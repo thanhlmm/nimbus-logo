@@ -3,3 +3,6 @@ workers_dev = true
 
 compatibility_date = "2022-02-03"
 
+kv_namespaces = [
+  { binding = "NIMBUS", id = "5746b260c9f9447db6aa4e2e235214b3", preview_id = "b9b5e4ae92f84506add557a1871c1e36"}
+]
