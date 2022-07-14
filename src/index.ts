@@ -68,8 +68,8 @@ const getAddressLogo = async ({ chainId, address, type }) => {
       const tokens = tokenList.tokens;
 
       const tokenData = tokens.find(token => token.address.toLowerCase() === address);
-      if (tokenData) {
-        tokenData.logoURI
+      if (tokenData?.logoURI) {
+        return tokenData.logoURI
       }
       const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
       return addressInfo?.data?.isContract ? defaultLogo : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/user.png';
@@ -85,7 +85,6 @@ const getAddressLogo = async ({ chainId, address, type }) => {
 app.get('/logo/:chainId/:address', async (c) => {
   const chainId = c.req.param('chainId');
   const address = c.req.param('address').toLowerCase();
-  console.log({ chainId, address });
 
   return c.redirect(await getAddressLogo({ chainId, address, type: undefined }), 301);
 });
@@ -93,7 +92,6 @@ app.get('/logo/:chainId/:address', async (c) => {
 app.get('/logo/:chainId/:address/token', async (c) => {
   const chainId = c.req.param('chainId');
   const address = c.req.param('address').toLowerCase();
-  console.log({ chainId, address, type: 'token' });
 
   return c.redirect(await getAddressLogo({ chainId, address, type: 'token' }), 301);
 });
