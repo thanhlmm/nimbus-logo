@@ -90,13 +90,12 @@ app.get('/logo/:chainId/:address', async (c) => {
   return c.redirect(await getAddressLogo({ chainId, address, type: undefined }), 301);
 });
 
-app.get('/logo/:chainId/:address/:type', async (c) => {
+app.get('/logo/:chainId/:address/token', async (c) => {
   const chainId = c.req.param('chainId');
   const address = c.req.param('address').toLowerCase();
-  const type = c.req.param('type').toLowerCase();
-  console.log({ chainId, address, type });
+  console.log({ chainId, address, type: 'token' });
 
-  return c.redirect(await getAddressLogo({ chainId, address, type }), 301);
+  return c.redirect(await getAddressLogo({ chainId, address, type: 'token' }), 301);
 });
 
 app.get('/info/:chainId/:address', async (c) => {
