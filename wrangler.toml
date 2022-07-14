@@ -1,4 +1,4 @@
-name="nimbus-logo"
+name="nimbus-utils"
 workers_dev = true
 
 compatibility_date = "2022-02-03"

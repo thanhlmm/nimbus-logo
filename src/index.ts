@@ -56,29 +56,47 @@ const getChainIdConfig = (id: string): IChainConfig | null => {
   return null;
 };
 
-app.get('/logo/:chainId/:address', async (c) => {
-  const chainId = c.req.param('chainId');
-  const address = c.req.param('address').toLowerCase();
+const getAddressLogo = async ({ chainId, address, type }) => {
+  console.log({ chainId, address, type });
+  const defaultLogo = type === 'token' ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/coin.svg' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png';
   try {
     const chainConfig = getChainIdConfig(chainId);
     if (chainConfig) {
+      // TODO: Cache this fetch list
       const tokenList: any = await fetch(`https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${chainConfig.folder}/tokenlist.json`).then(response => response.json());
       // console.log(tokenList);
       const tokens = tokenList.tokens;
 
       const tokenData = tokens.find(token => token.address.toLowerCase() === address);
       if (tokenData) {
-        return c.redirect(tokenData.logoURI, 301);
+        tokenData.logoURI
       }
       const addressInfo: any = await fetch(`https://getnimbus.xyz/api/address/${chainId}/${address}`).then(response => response.json());
-      console.log({ addressInfo });
-      return c.redirect(addressInfo?.data?.isContract ? 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png' : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/user.png', 302);
+      return addressInfo?.data?.isContract ? defaultLogo : 'https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/user.png';
     }
   } catch (error) {
+    console.log(error);
     console.log('error', error);
   }
 
-  return c.redirect('https://raw.githubusercontent.com/thanhlmm/nimbus-logo/main/assets/smart-contract.png', 302);
+  return defaultLogo;
+}
+
+app.get('/logo/:chainId/:address', async (c) => {
+  const chainId = c.req.param('chainId');
+  const address = c.req.param('address').toLowerCase();
+  console.log({ chainId, address });
+
+  return c.redirect(await getAddressLogo({ chainId, address, type: undefined }), 301);
+});
+
+app.get('/logo/:chainId/:address/:type', async (c) => {
+  const chainId = c.req.param('chainId');
+  const address = c.req.param('address').toLowerCase();
+  const type = c.req.param('type').toLowerCase();
+  console.log({ chainId, address, type });
+
+  return c.redirect(await getAddressLogo({ chainId, address, type }), 301);
 });
 
 app.get('/info/:chainId/:address', async (c) => {
